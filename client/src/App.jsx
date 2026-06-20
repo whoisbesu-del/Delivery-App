@@ -13,6 +13,7 @@ import StoreMenu from './pages/customer/StoreMenu.jsx';
 import Cart from './pages/customer/Cart.jsx';
 import OrderTracking from './pages/customer/OrderTracking.jsx';
 import OrderHistory from './pages/customer/OrderHistory.jsx';
+import PaymentPage from './pages/customer/PaymentPage.jsx';
 
 import AvailableDeliveries from './pages/driver/AvailableDeliveries.jsx';
 import ActiveDelivery from './pages/driver/ActiveDelivery.jsx';
@@ -22,6 +23,7 @@ import Dashboard from './pages/admin/Dashboard.jsx';
 import ManageStores from './pages/admin/ManageStores.jsx';
 import ManageItems from './pages/admin/ManageItems.jsx';
 import AllOrders from './pages/admin/AllOrders.jsx';
+import PaymentSettings from './pages/admin/PaymentSettings.jsx';
 
 function Layout() {
   return (
@@ -63,6 +65,7 @@ export default function App() {
           <Route path="cart" element={<Cart />} />
           <Route path="orders" element={<OrderHistory />} />
           <Route path="orders/:id" element={<OrderTracking />} />
+          <Route path="pay/:orderId" element={<PaymentPage />} />
         </Route>
 
         <Route
@@ -90,6 +93,7 @@ export default function App() {
           <Route path="stores" element={<ManageStores />} />
           <Route path="stores/:storeId/items" element={<ManageItems />} />
           <Route path="orders" element={<AllOrders />} />
+          <Route path="payments" element={<PaymentSettings />} />
         </Route>
       </Route>
 

@@ -33,20 +33,27 @@ CREATE TABLE IF NOT EXISTS items (
 );
 
 CREATE TABLE IF NOT EXISTS orders (
-  id               SERIAL PRIMARY KEY,
-  customer_id      INTEGER       NOT NULL REFERENCES users(id),
-  store_id         INTEGER       NOT NULL REFERENCES stores(id),
-  driver_id        INTEGER       REFERENCES users(id),
-  status           TEXT          NOT NULL DEFAULT 'pending'
-                     CHECK (status IN ('pending','accepted','picked_up','delivered')),
-  subtotal         NUMERIC(10,2) NOT NULL,
-  delivery_fee     NUMERIC(10,2) NOT NULL,
-  total            NUMERIC(10,2) NOT NULL,
-  delivery_address TEXT          NOT NULL,
-  accepted_at      TIMESTAMPTZ,
-  picked_up_at     TIMESTAMPTZ,
-  delivered_at     TIMESTAMPTZ,
-  created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+  id                       SERIAL PRIMARY KEY,
+  customer_id              INTEGER       NOT NULL REFERENCES users(id),
+  store_id                 INTEGER       NOT NULL REFERENCES stores(id),
+  driver_id                INTEGER       REFERENCES users(id),
+  status                   TEXT          NOT NULL DEFAULT 'pending'
+                             CHECK (status IN ('pending','accepted','picked_up','delivered')),
+  payment_status           TEXT          NOT NULL DEFAULT 'unpaid'
+                             CHECK (payment_status IN ('unpaid','pending_verification','verified','rejected')),
+  subtotal                 NUMERIC(10,2) NOT NULL,
+  delivery_fee             NUMERIC(10,2) NOT NULL,
+  total                    NUMERIC(10,2) NOT NULL,
+  delivery_address         TEXT          NOT NULL,
+  receipt_image            TEXT,
+  receipt_submitted_at     TIMESTAMPTZ,
+  payment_verified_at      TIMESTAMPTZ,
+  payment_verified_by      INTEGER       REFERENCES users(id),
+  payment_rejection_reason TEXT,
+  accepted_at              TIMESTAMPTZ,
+  picked_up_at             TIMESTAMPTZ,
+  delivered_at             TIMESTAMPTZ,
+  created_at               TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -64,3 +71,11 @@ CREATE INDEX IF NOT EXISTS idx_orders_customer_id    ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_driver_id      ON orders(driver_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status         ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id  ON order_items(order_id);
+
+-- Payment columns for existing deployments (safe to run on already-created tables)
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS receipt_image TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS receipt_submitted_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_verified_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_verified_by INTEGER REFERENCES users(id);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_rejection_reason TEXT;

@@ -49,6 +49,15 @@ export const api = {
   updateOrderStatus: (id, status) => request(`/orders/${id}/status`, { method: 'PUT', body: { status } }),
   allOrders: () => request('/orders'),
   getOrder: (id) => request(`/orders/${id}`),
+
+  // payment
+  getPaymentSettings: () => request('/payment/settings', { auth: false }),
+  savePaymentSettings: (payload) => request('/payment/settings', { method: 'PUT', body: payload }),
+  submitReceipt: (orderId, receiptImage) => request(`/payment/receipt/${orderId}`, { method: 'POST', body: { receiptImage } }),
+  getPendingPayments: () => request('/payment/pending'),
+  getReceipt: (orderId) => request(`/payment/receipt/${orderId}`),
+  verifyPayment: (orderId) => request(`/payment/verify/${orderId}`, { method: 'POST' }),
+  rejectPayment: (orderId, reason) => request(`/payment/reject/${orderId}`, { method: 'POST', body: { reason } }),
 };
 
 export { getToken };

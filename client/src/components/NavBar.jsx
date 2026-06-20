@@ -15,7 +15,8 @@ const NAV_BY_ROLE = {
   admin: [
     { to: '/admin', label: 'Dashboard' },
     { to: '/admin/stores', label: 'Stores' },
-    { to: '/admin/orders', label: 'Orders' },
+    { to: "/admin/orders", label: "Orders" },
+    { to: "/admin/payments", label: "Payments" },
   ],
 };
 

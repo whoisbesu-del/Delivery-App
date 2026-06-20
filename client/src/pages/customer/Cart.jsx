@@ -26,7 +26,7 @@ export default function Cart() {
         deliveryAddress: address.trim(),
       });
       clearCart();
-      navigate(`/customer/orders/${order.id}`);
+      navigate(`/customer/pay/${order.id}`);
     } catch (err) {
       setError(err.message);
     } finally {
