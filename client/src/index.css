@@ -2,83 +2,104 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
-  height: 100%;
+/* CSS variables for theming */
+:root {
+  --bg:        #F5F5F5;
+  --bg2:       #FFFFFF;
+  --bg3:       #F0F0F0;
+  --border:    #E5E5E5;
+  --text:      #111111;
+  --text2:     #555555;
+  --text3:     #999999;
+  --primary:   #22C55E;
+  --primary-t: rgba(34,197,94,0.12);
+  --red:       #EF4444;
+  --shadow:    0 1px 4px rgba(0,0,0,0.08);
+  --shadow2:   0 4px 16px rgba(0,0,0,0.12);
 }
+
+.dark {
+  --bg:        #060A06;
+  --bg2:       #0D160D;
+  --bg3:       #142014;
+  --border:    #1A2E1A;
+  --text:      #E8F5E8;
+  --text2:     #7AAE7A;
+  --text3:     #4A6A4A;
+  --primary:   #22C55E;
+  --primary-t: rgba(34,197,94,0.10);
+  --red:       #F87171;
+  --shadow:    0 1px 4px rgba(0,0,0,0.4);
+  --shadow2:   0 4px 16px rgba(0,0,0,0.5);
+}
+
+html, body, #root { height: 100%; }
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
 body {
-  background-color: #060A06;
-  color: #E8F5E8;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-* {
-  -webkit-tap-highlight-color: transparent;
-}
+/* Utility classes using CSS variables */
+.bg-base    { background: var(--bg); }
+.bg-card    { background: var(--bg2); }
+.bg-muted   { background: var(--bg3); }
+.border-base{ border-color: var(--border); }
+.text-base  { color: var(--text); }
+.text-muted { color: var(--text2); }
+.text-dim   { color: var(--text3); }
+.text-green { color: var(--primary); }
+.bg-green   { background: var(--primary); }
+.bg-green-t { background: var(--primary-t); }
+.shadow-base{ box-shadow: var(--shadow); }
+.shadow-lg  { box-shadow: var(--shadow2); }
 
-::selection {
-  background: rgba(34, 197, 94, 0.25);
-  color: #E8F5E8;
+/* Inputs */
+input, textarea, select {
+  background: var(--bg3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  outline: none;
+  transition: border-color 0.15s;
 }
-
-:focus-visible {
-  outline: 2px solid #22C55E;
-  outline-offset: 2px;
-}
+input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+input::placeholder, textarea::placeholder { color: var(--text3); }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1A2E1A; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #22C55E; }
-
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Input base style */
-input, textarea, select {
-  background-color: #0D160D;
-  color: #E8F5E8;
-  border-color: #1A2E1A;
-}
-input::placeholder, textarea::placeholder {
-  color: #4A6A4A;
-}
+/* Bottom nav safe area */
+.pb-nav { padding-bottom: 64px; }
 
-/* Card shine effect */
-.card-shine {
-  background: linear-gradient(135deg, rgba(34,197,94,0.04) 0%, transparent 60%);
-}
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeIn 0.25s ease; }
 
-/* Green glow button */
-.btn-primary {
-  background: #22C55E;
-  color: #060A06;
+/* Green button */
+.btn-green {
+  background: var(--primary);
+  color: #fff;
   font-weight: 600;
-  transition: all 0.15s ease;
+  border-radius: 8px;
+  transition: all 0.15s;
+  border: none;
+  cursor: pointer;
 }
-.btn-primary:hover { background: #16A34A; box-shadow: 0 0 16px rgba(34,197,94,0.35); }
-.btn-primary:active { transform: scale(0.97); }
+.btn-green:hover { filter: brightness(1.05); }
+.btn-green:active { transform: scale(0.97); }
+.btn-green:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Ghost button */
-.btn-ghost {
-  border: 1px solid #1A2E1A;
-  color: #7AAE7A;
-  transition: all 0.15s ease;
+/* Card */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
 }
-.btn-ghost:hover { border-color: #22C55E; color: #22C55E; background: #0A2010; }
-.btn-ghost:active { transform: scale(0.97); }
-
-/* Animated green underline for links */
-.green-link {
-  position: relative;
-  color: #22C55E;
-}
-.green-link::after {
-  content: '';
-  position: absolute;
-  bottom: -1px; left: 0; right: 100%;
-  height: 1px;
-  background: #22C55E;
-  transition: right 0.2s ease;
-}
-.green-link:hover::after { right: 0; }

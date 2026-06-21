@@ -7,6 +7,7 @@ const authRoutes    = require('./routes/auth');
 const storeRoutes   = require('./routes/stores');
 const orderRoutes   = require('./routes/orders');
 const paymentRoutes = require('./routes/payment');
+const chatRoutes    = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -30,6 +31,7 @@ app.use('/api/auth',    authRoutes);
 app.use('/api/stores',  storeRoutes);
 app.use('/api/orders',  orderRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/chat',    chatRoutes);
 
 app.use((err, req, res, next) => { console.error(err); res.status(500).json({ error: 'Server error.' }); });
 

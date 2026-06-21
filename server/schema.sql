@@ -116,3 +116,27 @@ END $$;
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 ALTER TABLE users ADD CONSTRAINT users_role_check
   CHECK (role IN ('customer','driver','admin','seller'));
+
+-- Chat system
+CREATE TABLE IF NOT EXISTS conversations (
+  id           SERIAL PRIMARY KEY,
+  type         TEXT NOT NULL, -- 'buyer_seller', 'buyer_driver', 'support'
+  order_id     INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+  participant1 INTEGER NOT NULL REFERENCES users(id),
+  participant2 INTEGER NOT NULL REFERENCES users(id),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(order_id, participant1, participant2)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id              SERIAL PRIMARY KEY,
+  conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id       INTEGER NOT NULL REFERENCES users(id),
+  body            TEXT NOT NULL,
+  read_at         TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant1 ON conversations(participant1);
+CREATE INDEX IF NOT EXISTS idx_conversations_participant2 ON conversations(participant2);
