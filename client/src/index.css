@@ -6,23 +6,79 @@ html, body, #root {
   height: 100%;
 }
 
+body {
+  background-color: #060A06;
+  color: #E8F5E8;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
-  background: #FFE7DC;
+  background: rgba(34, 197, 94, 0.25);
+  color: #E8F5E8;
 }
 
 :focus-visible {
-  outline: 2px solid #FF6B35;
+  outline: 2px solid #22C55E;
   outline-offset: 2px;
 }
 
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1A2E1A; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #22C55E; }
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Input base style */
+input, textarea, select {
+  background-color: #0D160D;
+  color: #E8F5E8;
+  border-color: #1A2E1A;
 }
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+input::placeholder, textarea::placeholder {
+  color: #4A6A4A;
 }
+
+/* Card shine effect */
+.card-shine {
+  background: linear-gradient(135deg, rgba(34,197,94,0.04) 0%, transparent 60%);
+}
+
+/* Green glow button */
+.btn-primary {
+  background: #22C55E;
+  color: #060A06;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.btn-primary:hover { background: #16A34A; box-shadow: 0 0 16px rgba(34,197,94,0.35); }
+.btn-primary:active { transform: scale(0.97); }
+
+/* Ghost button */
+.btn-ghost {
+  border: 1px solid #1A2E1A;
+  color: #7AAE7A;
+  transition: all 0.15s ease;
+}
+.btn-ghost:hover { border-color: #22C55E; color: #22C55E; background: #0A2010; }
+.btn-ghost:active { transform: scale(0.97); }
+
+/* Animated green underline for links */
+.green-link {
+  position: relative;
+  color: #22C55E;
+}
+.green-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 100%;
+  height: 1px;
+  background: #22C55E;
+  transition: right 0.2s ease;
+}
+.green-link:hover::after { right: 0; }

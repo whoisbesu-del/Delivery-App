@@ -8,42 +8,31 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('relay_token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    api
-      .me()
-      .then(({ user }) => setUser(user))
-      .catch(() => localStorage.removeItem('relay_token'))
-      .finally(() => setLoading(false));
+    const token = localStorage.getItem('south_token');
+    if (!token) { setLoading(false); return; }
+    api.me().then(({ user }) => setUser(user)).catch(() => localStorage.removeItem('south_token')).finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (email, password) => {
     const { token, user } = await api.login({ email, password });
-    localStorage.setItem('relay_token', token);
+    localStorage.setItem('south_token', token);
     setUser(user);
     return user;
   }, []);
 
   const register = useCallback(async (payload) => {
     const { token, user } = await api.register(payload);
-    localStorage.setItem('relay_token', token);
+    localStorage.setItem('south_token', token);
     setUser(user);
     return user;
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('relay_token');
+    localStorage.removeItem('south_token');
     setUser(null);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
