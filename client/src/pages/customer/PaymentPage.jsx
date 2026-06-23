@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../api.js';
+import BackButton from '../../components/BackButton.jsx';
 
 export default function PaymentPage() {
   const { orderId } = useParams();
@@ -14,134 +15,105 @@ export default function PaymentPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.getOrder(orderId).then(({ order }) => setOrder(order));
-    api.getPaymentSettings().then(({ settings }) => setSettings(settings));
+    Promise.all([api.getOrder(orderId), api.getPaymentSettings()])
+      .then(([or, sr]) => { setOrder(or.order); setSettings(sr.settings); });
   }, [orderId]);
 
   function handleFile(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setImage(ev.target.result);
-      setPreview(ev.target.result);
-    };
-    reader.readAsDataURL(file);
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => { setImage(ev.target.result); setPreview(ev.target.result); };
+    r.readAsDataURL(file);
   }
 
-  async function submitReceipt() {
-    if (!image) { setError('Please select your receipt screenshot first.'); return; }
-    setSubmitting(true);
-    setError('');
+  async function submit() {
+    if (!image) { setError('Please select your receipt screenshot.'); return; }
+    setSubmitting(true); setError('');
     try {
       await api.submitReceipt(orderId, image);
       setSubmitted(true);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setSubmitting(false); }
   }
 
-  if (!order || !settings) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-amber" />
-      </div>
-    );
-  }
+  if (submitted) return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-base px-4 text-center">
+      <div className="w-20 h-20 rounded-full bg-green-t flex items-center justify-center text-5xl check-pop mx-auto mb-4">✓</div>
+      <h1 className="font-bold text-base text-xl" style={{ fontFamily: 'Space Grotesk' }}>Receipt submitted!</h1>
+      <p className="text-muted text-sm mt-2">We'll verify your payment within 5 minutes.</p>
+      <button onClick={() => navigate(`/customer/orders/${orderId}`)}
+        className="mt-6 btn-green btn-glow px-6 py-3 rounded-xl text-sm">Track my order →</button>
+    </div>
+  );
 
-  if (submitted) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-tealsoft text-2xl">✓</div>
-        <h1 className="font-display text-xl font-semibold text-ink">Receipt submitted!</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          We'll verify your payment within 5 minutes and your order will be on its way.
-        </p>
-        <button
-          onClick={() => navigate(`/customer/orders/${orderId}`)}
-          className="mt-6 rounded-lg bg-ink px-6 py-2.5 text-sm font-semibold text-white"
-        >
-          Track my order
-        </button>
-      </div>
-    );
-  }
-
-  const hasSettings = settings.bankName || settings.accountNumber;
+  if (!order || !settings) return (
+    <div className="flex min-h-screen items-center justify-center bg-base">
+      <div className="w-8 h-8 rounded-full border-2 border-green spin" style={{ borderTopColor: 'transparent' }} />
+    </div>
+  );
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8 sm:px-6">
-      <h1 className="font-display text-2xl font-semibold text-ink">Pay for your order</h1>
-      <p className="text-sm text-slate-500">Order #{order.id} · Total: <span className="font-mono font-medium text-ink">${order.total.toFixed(2)}</span></p>
-
-      {/* Bank details */}
-      {hasSettings ? (
-        <div className="mt-5 rounded-xl border-2 border-amber bg-ambersoft p-5">
-          <p className="mb-3 text-xs font-mono uppercase tracking-wide text-amber">Transfer to this account</p>
-          <div className="space-y-2 text-sm">
-            {settings.bankName && (
-              <div className="flex justify-between">
-                <span className="text-inkmuted">Bank</span>
-                <span className="font-medium text-ink">{settings.bankName}</span>
-              </div>
-            )}
-            {settings.accountNumber && (
-              <div className="flex justify-between">
-                <span className="text-inkmuted">Account number</span>
-                <span className="font-mono font-semibold text-ink">{settings.accountNumber}</span>
-              </div>
-            )}
-            {settings.accountHolder && (
-              <div className="flex justify-between">
-                <span className="text-inkmuted">Account name</span>
-                <span className="font-medium text-ink">{settings.accountHolder}</span>
-              </div>
-            )}
-            <div className="flex justify-between border-t border-amber/30 pt-2">
-              <span className="text-inkmuted">Amount to transfer</span>
-              <span className="font-mono font-bold text-amber">${order.total.toFixed(2)}</span>
-            </div>
-          </div>
-          {settings.instructions && (
-            <p className="mt-3 text-sm text-inkmuted">{settings.instructions}</p>
-          )}
-        </div>
-      ) : (
-        <div className="mt-5 rounded-xl border border-dashed border-line p-5 text-center text-sm text-slate-500">
-          Payment details not configured yet. Contact support.
-        </div>
-      )}
-
-      {/* Receipt upload */}
-      <div className="mt-6">
-        <p className="mb-2 text-sm font-medium text-ink">Upload your payment receipt</p>
-        <p className="mb-3 text-sm text-slate-500">After transferring, take a screenshot of the confirmation and upload it here.</p>
-
-        <label className="block cursor-pointer rounded-xl border-2 border-dashed border-line p-6 text-center hover:border-amber hover:bg-ambersoft transition-colors">
-          <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
-          {preview ? (
-            <img src={preview} alt="Receipt preview" className="mx-auto max-h-48 rounded-lg object-contain" />
-          ) : (
-            <div>
-              <p className="text-2xl">📎</p>
-              <p className="mt-1 text-sm font-medium text-inkmuted">Tap to select screenshot</p>
-              <p className="text-xs text-slate-500">JPG, PNG supported</p>
-            </div>
-          )}
-        </label>
+    <div className="bg-base min-h-screen pb-nav page-enter">
+      <div className="card rounded-none border-x-0 border-t-0 sticky top-0 z-10 px-4 py-3 flex items-center gap-3">
+        <BackButton />
+        <p className="font-bold text-base">Pay for Order #{order.id}</p>
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      <div className="p-3 space-y-3">
+        {/* Bank details */}
+        <div className="card rounded-2xl p-4" style={{ border: '2px solid var(--primary)', background: 'var(--primary-t)' }}>
+          <p className="text-xs font-bold uppercase tracking-wider text-green mb-3">Transfer to this account</p>
+          {settings.bankName && (
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-muted">Bank</span>
+              <span className="font-semibold text-base">{settings.bankName}</span>
+            </div>
+          )}
+          {settings.accountNumber && (
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-muted">Account number</span>
+              <span className="font-bold font-mono text-base">{settings.accountNumber}</span>
+            </div>
+          )}
+          {settings.accountHolder && (
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-muted">Account name</span>
+              <span className="font-semibold text-base">{settings.accountHolder}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-sm pt-2 mt-1" style={{ borderTop: '1px solid var(--primary)' }}>
+            <span className="text-muted">Amount</span>
+            <span className="font-bold text-green text-lg font-mono">ETB {order.total.toFixed(2)}</span>
+          </div>
+          {settings.instructions && (
+            <p className="mt-3 text-xs text-muted">{settings.instructions}</p>
+          )}
+        </div>
 
-      <button
-        onClick={submitReceipt}
-        disabled={submitting || !image}
-        className="mt-5 w-full rounded-lg bg-ink py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-      >
-        {submitting ? 'Submitting…' : 'Submit receipt for verification'}
-      </button>
+        {/* Receipt upload */}
+        <div className="card rounded-2xl p-4">
+          <p className="font-semibold text-base text-sm mb-1">Upload payment receipt</p>
+          <p className="text-xs text-muted mb-3">After transferring, take a screenshot and upload it here.</p>
+          <label className="flex flex-col items-center justify-center cursor-pointer rounded-2xl p-6 transition-all tap-scale"
+            style={{ border: '2px dashed var(--border)' }}>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+            {preview
+              ? <img src={preview} className="max-h-48 rounded-xl object-contain" />
+              : <>
+                  <span className="text-4xl mb-2">📎</span>
+                  <p className="text-sm font-semibold text-muted">Tap to select screenshot</p>
+                  <p className="text-xs text-dim">JPG, PNG supported</p>
+                </>}
+          </label>
+        </div>
+
+        {error && <p className="text-sm px-1" style={{ color: 'var(--red)' }}>{error}</p>}
+
+        <button onClick={submit} disabled={submitting || !image}
+          className="btn-green btn-glow w-full py-3.5 rounded-xl text-sm tap-scale">
+          {submitting ? 'Submitting…' : 'Submit receipt for verification'}
+        </button>
+      </div>
     </div>
   );
 }

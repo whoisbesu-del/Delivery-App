@@ -11,81 +11,68 @@ export default function AvailableDeliveries() {
   const [error, setError] = useState('');
 
   function load() {
-    Promise.all([api.availableOrders(), api.activeDelivery()]).then(([poolRes, activeRes]) => {
-      setOrders(poolRes.orders);
-      setActiveOrder(activeRes.order);
+    Promise.all([api.availableOrders(), api.activeDelivery()]).then(([pr, ar]) => {
+      setOrders(pr.orders); setActiveOrder(ar.order);
     }).finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => { load(); const t = setInterval(load, 5000); return () => clearInterval(t); }, []);
 
   async function accept(orderId) {
-    setError('');
-    setAcceptingId(orderId);
-    try {
-      await api.acceptOrder(orderId);
-      navigate('/driver/active');
-    } catch (err) {
-      setError(err.message);
-      setAcceptingId(null);
-      load();
-    }
+    setError(''); setAcceptingId(orderId);
+    try { await api.acceptOrder(orderId); navigate('/driver/active'); }
+    catch (err) { setError(err.message); load(); }
+    finally { setAcceptingId(null); }
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-amber" />
-      </div>
-    );
-  }
-
-  if (activeOrder) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="text-slate-500">You already have a delivery in progress.</p>
-        <button onClick={() => navigate('/driver/active')} className="mt-3 font-medium text-amber">
-          Go to active delivery →
-        </button>
-      </div>
-    );
-  }
+  if (activeOrder) return (
+    <div className="bg-base min-h-screen pb-nav flex flex-col items-center justify-center p-6 text-center">
+      <p className="text-5xl mb-3">🛵</p>
+      <p className="font-bold text-base text-lg">You have an active delivery</p>
+      <p className="text-muted text-sm mt-1">Complete it before accepting another.</p>
+      <button onClick={() => navigate('/driver/active')}
+        className="mt-4 btn-green px-6 py-2.5 rounded-xl text-sm">Go to active delivery →</button>
+    </div>
+  );
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <h1 className="font-display text-2xl font-semibold text-ink">Available deliveries</h1>
-      <p className="text-sm text-slate-500">New requests appear here as customers place orders.</p>
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+    <div className="bg-base min-h-screen pb-nav page-enter">
+      <div className="card rounded-none border-x-0 border-t-0 sticky top-0 z-10 px-4 py-3">
+        <p className="font-bold text-base text-lg" style={{ fontFamily: 'Space Grotesk' }}>Available Deliveries</p>
+        <p className="text-xs text-muted">New orders appear here automatically</p>
+      </div>
 
-      {orders.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-dashed border-line p-8 text-center text-slate-500">
-          Nothing in the queue right now. Check back shortly.
+      {error && <div className="mx-3 mt-3 rounded-xl px-4 py-2 text-sm" style={{ background: 'rgba(239,68,68,0.08)', color: 'var(--red)' }}>{error}</div>}
+
+      {loading ? (
+        <div className="p-3 space-y-3">{[1,2].map(i=><div key={i} className="h-40 skeleton rounded-2xl"/>)}</div>
+      ) : orders.length === 0 ? (
+        <div className="flex flex-col items-center py-20 text-muted">
+          <p className="text-5xl mb-3">📭</p>
+          <p className="font-semibold text-base">No orders available</p>
+          <p className="text-sm mt-1">Check back shortly</p>
         </div>
       ) : (
-        <div className="mt-5 space-y-3">
-          {orders.map((order) => (
-            <div key={order.id} className="rounded-xl border border-line bg-surface p-4">
-              <div className="flex items-start justify-between">
+        <div className="p-3 space-y-3">
+          {orders.map((order, i) => (
+            <div key={order.id} className="card rounded-2xl p-4 slide-up" style={{ animationDelay: `${i * 0.05}s` }}>
+              <div className="flex items-start justify-between mb-3">
                 <div>
-                  <span className="font-mono text-[11px] uppercase tracking-wide text-amber">{order.store?.category}</span>
-                  <p className="font-medium text-ink">{order.store?.name}</p>
-                  <p className="text-sm text-slate-500">{order.store?.address}</p>
+                  <p className="text-xs text-dim uppercase tracking-wider">{order.store?.category}</p>
+                  <p className="font-bold text-base">{order.store?.name}</p>
+                  <p className="text-sm text-muted">📍 {order.store?.address}</p>
                 </div>
-                <span className="rounded-full bg-tealsoft px-2.5 py-1 text-xs font-mono text-teal">
-                  +${order.deliveryFee.toFixed(2)}
+                <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-green">
+                  +ETB {order.deliveryFee.toFixed(2)}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-slate-500">→ {order.deliveryAddress}</p>
-              <p className="mt-1 text-sm text-inkmuted">{order.items.length} item{order.items.length > 1 ? 's' : ''} · ${order.total.toFixed(2)} order total</p>
-              <button
-                onClick={() => accept(order.id)}
-                disabled={acceptingId === order.id}
-                className="mt-3 w-full rounded-lg bg-ink py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-              >
+              <div className="rounded-xl p-3 mb-3" style={{ background: 'var(--bg3)' }}>
+                <p className="text-xs text-dim mb-1">Deliver to</p>
+                <p className="text-sm font-semibold text-base">🏠 {order.deliveryAddress}</p>
+              </div>
+              <p className="text-sm text-muted mb-3">{order.items.length} item{order.items.length > 1 ? 's' : ''} · ETB {order.total.toFixed(2)} order total</p>
+              <button onClick={() => accept(order.id)} disabled={acceptingId === order.id}
+                className="btn-green btn-glow w-full py-3 rounded-xl text-sm tap-scale">
                 {acceptingId === order.id ? 'Accepting…' : 'Accept delivery'}
               </button>
             </div>
